@@ -12,6 +12,7 @@ const taskRoutes = require("./src/routes/taskRoutes");
 const proposalRoutes = require("./src/routes/proposalRoutes");
 const paymentRoutes = require("./src/routes/paymentRoutes");
 const reviewRoutes = require("./src/routes/reviewRoutes");
+const statsRoutes = require("./src/routes/statsRoutes");
 
 app.use(cors());
 app.use(express.json());
@@ -22,6 +23,7 @@ app.use("/tasks", taskRoutes);
 app.use("/proposals", proposalRoutes);
 app.use("/payments", paymentRoutes);
 app.use("/reviews", reviewRoutes);
+app.use("/stats", statsRoutes);
 
 app.get("/", (req, res) => {
   res.send("Flancify Server Running");
