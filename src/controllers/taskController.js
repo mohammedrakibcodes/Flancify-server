@@ -25,7 +25,7 @@ const createTask = async (req, res) => {
 
 const getAllTasks = async (req, res) => {
   try {
-    const { search, category } = req.query;
+    const { search, category, page = 1, limit = 9 } = req.query;
 
     const query = {};
 
@@ -40,11 +40,23 @@ const getAllTasks = async (req, res) => {
       query.category = category;
     }
 
-    const result = await tasksCollection.find(query).toArray();
+    const currentPage = parseInt(page);
+    const itemsPerPage = parseInt(limit);
+
+    const totalTasks = await tasksCollection.countDocuments(query);
+
+    const result = await tasksCollection
+      .find(query)
+      .skip((currentPage - 1) * itemsPerPage)
+      .limit(itemsPerPage)
+      .sort({ createdAt: -1 })
+      .toArray();
 
     res.send({
       success: true,
-      count: result.length,
+      totalTasks,
+      totalPages: Math.ceil(totalTasks / itemsPerPage),
+      currentPage,
       result,
     });
   } catch (error) {
