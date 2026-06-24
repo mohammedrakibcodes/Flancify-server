@@ -67,6 +67,44 @@ const getUserByEmail = async (req, res) => {
   }
 };
 
+const getUserById = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const result = await usersCollection.findOne({
+      _id: new ObjectId(id),
+    });
+
+    res.send({
+      success: true,
+      result,
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const getUserByQueryEmail = async (req, res) => {
+  try {
+    const email = req.query.email;
+
+    const result = await usersCollection.findOne({ email });
+
+    res.send({
+      success: true,
+      result,
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 const updateUser = async (req, res) => {
   try {
     const id = req.params.id;
@@ -95,5 +133,7 @@ module.exports = {
   createUser,
   getAllUsers,
   getUserByEmail,
+  getUserById,
+  getUserByQueryEmail,
   updateUser,
 };

@@ -4,6 +4,8 @@ const {
   createUser,
   getAllUsers,
   getUserByEmail,
+  getUserById,
+  getUserByQueryEmail,
   updateUser,
 } = require("../controllers/userController");
 
@@ -12,6 +14,8 @@ const router = express.Router();
 router.post("/", createUser);
 router.get("/", getAllUsers);
 router.get("/:email", getUserByEmail);
+router.get("/email", getUserByQueryEmail);
+router.get("/id/:id", getUserById);
 router.patch("/:id", updateUser);
 
 module.exports = router;
