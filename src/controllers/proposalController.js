@@ -74,8 +74,57 @@ const updateProposal = async (req, res) => {
   }
 };
 
+const acceptProposal = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const proposal = await proposalsCollection.findOne({
+      _id: new ObjectId(id),
+    });
+
+    if (!proposal) {
+      return res.status(404).send({
+        success: false,
+        message: "Proposal not found",
+      });
+    }
+
+    await proposalsCollection.updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          status: "accepted",
+        },
+      },
+    );
+
+    await proposalsCollection.updateMany(
+      {
+        task_id: proposal.task_id,
+        _id: { $ne: new ObjectId(id) },
+      },
+      {
+        $set: {
+          status: "rejected",
+        },
+      },
+    );
+
+    res.send({
+      success: true,
+      message: "Proposal accepted",
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createProposal,
   getAllProposals,
   updateProposal,
+  acceptProposal,
 };

@@ -133,10 +133,61 @@ const deleteTask = async (req, res) => {
   }
 };
 
+const getLatestTasks = async (req, res) => {
+  try {
+    const result = await tasksCollection
+      .find({ status: "open" })
+      .sort({ createdAt: -1 })
+      .limit(6)
+      .toArray();
+
+    res.send({
+      success: true,
+      result,
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const submitDeliverable = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { deliverable_url } = req.body;
+
+    const result = await tasksCollection.updateOne(
+      {
+        _id: new ObjectId(id),
+      },
+      {
+        $set: {
+          deliverable_url,
+          status: "completed",
+        },
+      },
+    );
+
+    res.send({
+      success: true,
+      result,
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createTask,
   getAllTasks,
   getTaskById,
   updateTask,
   deleteTask,
+  getLatestTasks,
+  submitDeliverable,
 };

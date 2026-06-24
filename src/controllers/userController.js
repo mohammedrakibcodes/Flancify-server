@@ -129,6 +129,27 @@ const updateUser = async (req, res) => {
   }
 };
 
+const getTopFreelancers = async (req, res) => {
+  try {
+    const result = await usersCollection
+      .find({
+        role: "freelancer",
+      })
+      .limit(6)
+      .toArray();
+
+    res.send({
+      success: true,
+      result,
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createUser,
   getAllUsers,
@@ -136,4 +157,5 @@ module.exports = {
   getUserById,
   getUserByQueryEmail,
   updateUser,
+  getTopFreelancers,
 };
