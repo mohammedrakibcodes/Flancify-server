@@ -7,13 +7,13 @@ const cookieParser = require("cookie-parser");
 const { connectDB } = require("./src/db/db");
 
 const app = express();
-
 const userRoutes = require("./src/routes/userRoutes");
 
-app.use("/users", userRoutes);
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
+
+app.use("/users", userRoutes);
 
 app.get("/", (req, res) => {
   res.send("Flancify Server Running");
