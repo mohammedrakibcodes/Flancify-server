@@ -5,6 +5,7 @@ const {
   getAllProposals,
   updateProposal,
   acceptProposal,
+  getFreelancerProposals,
 } = require("../controllers/proposalController");
 
 const verifyToken = require("../middleware/verifyToken");
@@ -15,6 +16,8 @@ const router = express.Router();
 router.post("/", verifyToken, verifyRole("freelancer"), createProposal);
 
 router.get("/", getAllProposals);
+
+router.get("/freelancer/:email", verifyToken, getFreelancerProposals);
 
 router.patch("/:id", verifyToken, verifyRole("freelancer"), updateProposal);
 

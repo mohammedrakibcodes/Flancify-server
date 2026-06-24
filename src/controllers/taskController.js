@@ -182,6 +182,29 @@ const submitDeliverable = async (req, res) => {
   }
 };
 
+const getClientTasks = async (req, res) => {
+  try {
+    const email = req.params.email;
+
+    const result = await tasksCollection
+      .find({
+        client_email: email,
+      })
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    res.send({
+      success: true,
+      result,
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createTask,
   getAllTasks,
@@ -190,4 +213,5 @@ module.exports = {
   deleteTask,
   getLatestTasks,
   submitDeliverable,
+  getClientTasks,
 };

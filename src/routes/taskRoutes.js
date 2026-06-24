@@ -8,6 +8,7 @@ const {
   deleteTask,
   getLatestTasks,
   submitDeliverable,
+  getClientTasks,
 } = require("../controllers/taskController");
 
 const verifyToken = require("../middleware/verifyToken");
@@ -28,6 +29,8 @@ router.post(
 router.get("/", getAllTasks);
 
 router.get("/latest", getLatestTasks);
+
+router.get("/client/:email", verifyToken, getClientTasks);
 
 router.get("/:id", getTaskById);
 

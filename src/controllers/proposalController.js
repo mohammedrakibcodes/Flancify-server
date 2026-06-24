@@ -122,9 +122,33 @@ const acceptProposal = async (req, res) => {
   }
 };
 
+const getFreelancerProposals = async (req, res) => {
+  try {
+    const email = req.params.email;
+
+    const result = await proposalsCollection
+      .find({
+        freelancer_email: email,
+      })
+      .sort({ submitted_at: -1 })
+      .toArray();
+
+    res.send({
+      success: true,
+      result,
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createProposal,
   getAllProposals,
   updateProposal,
   acceptProposal,
+  getFreelancerProposals,
 };
