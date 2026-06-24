@@ -25,10 +25,26 @@ const createTask = async (req, res) => {
 
 const getAllTasks = async (req, res) => {
   try {
-    const result = await tasksCollection.find().toArray();
+    const { search, category } = req.query;
+
+    const query = {};
+
+    if (search) {
+      query.title = {
+        $regex: search,
+        $options: "i",
+      };
+    }
+
+    if (category && category !== "all") {
+      query.category = category;
+    }
+
+    const result = await tasksCollection.find(query).toArray();
 
     res.send({
       success: true,
+      count: result.length,
       result,
     });
   } catch (error) {
