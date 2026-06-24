@@ -15,6 +15,7 @@ const reviewRoutes = require("./src/routes/reviewRoutes");
 const statsRoutes = require("./src/routes/statsRoutes");
 const adminRoutes = require("./src/routes/adminRoutes");
 const authRoutes = require("./src/routes/authRoutes");
+const stripeRoutes = require("./src/routes/stripeRoutes");
 
 app.use(cors());
 app.use(express.json());
@@ -28,6 +29,7 @@ app.use("/reviews", reviewRoutes);
 app.use("/stats", statsRoutes);
 app.use("/admin", adminRoutes);
 app.use("/auth", authRoutes);
+app.use("/stripe", stripeRoutes);
 
 app.get("/", (req, res) => {
   res.send("Flancify Server Running");
