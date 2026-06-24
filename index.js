@@ -9,6 +9,7 @@ const { connectDB } = require("./src/db/db");
 const app = express();
 const userRoutes = require("./src/routes/userRoutes");
 const taskRoutes = require("./src/routes/taskRoutes");
+const proposalRoutes = require("./src/routes/proposalRoutes");
 
 app.use(cors());
 app.use(express.json());
@@ -16,6 +17,7 @@ app.use(cookieParser());
 
 app.use("/users", userRoutes);
 app.use("/tasks", taskRoutes);
+app.use("/proposals", proposalRoutes);
 
 app.get("/", (req, res) => {
   res.send("Flancify Server Running");
