@@ -8,6 +8,7 @@ const {
   getUserByQueryEmail,
   updateUser,
   getTopFreelancers,
+  getAllFreelancers,
 } = require("../controllers/userController");
 
 const router = express.Router();
@@ -17,6 +18,7 @@ router.get("/", getAllUsers);
 router.get("/email", getUserByQueryEmail);
 router.get("/id/:id", getUserById);
 router.get("/freelancers/top", getTopFreelancers);
+router.get("/freelancers", getAllFreelancers);
 router.get("/:email", getUserByEmail);
 router.patch("/:id", updateUser);
 

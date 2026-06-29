@@ -1,13 +1,17 @@
 const { ObjectId } = require("mongodb");
-const { tasksCollection } = require("../db/collections");
+const { tasksCollection, proposalsCollection } = require("../db/collections");
 
 const createTask = async (req, res) => {
   try {
     const taskData = req.body;
 
     taskData.status = "open";
+    taskData.total_proposals = 0;
+    taskData.selected_freelancer = null;
     taskData.deliverable_url = "";
+
     taskData.createdAt = new Date();
+    taskData.updatedAt = new Date();
 
     const result = await tasksCollection.insertOne(taskData);
 
@@ -40,16 +44,16 @@ const getAllTasks = async (req, res) => {
       query.category = category;
     }
 
-    const currentPage = parseInt(page);
-    const itemsPerPage = parseInt(limit);
+    const currentPage = Number(page);
+    const itemsPerPage = Number(limit);
 
     const totalTasks = await tasksCollection.countDocuments(query);
 
     const result = await tasksCollection
       .find(query)
+      .sort({ createdAt: -1 })
       .skip((currentPage - 1) * itemsPerPage)
       .limit(itemsPerPage)
-      .sort({ createdAt: -1 })
       .toArray();
 
     res.send({
@@ -69,11 +73,39 @@ const getAllTasks = async (req, res) => {
 
 const getTaskById = async (req, res) => {
   try {
-    const id = req.params.id;
-
     const result = await tasksCollection.findOne({
-      _id: new ObjectId(id),
+      _id: new ObjectId(req.params.id),
     });
+
+    if (!result) {
+      return res.status(404).send({
+        success: false,
+        message: "Task not found.",
+      });
+    }
+
+    res.send({
+      success: true,
+      result,
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const getClientTasks = async (req, res) => {
+  try {
+    const result = await tasksCollection
+      .find({
+        client_email: req.params.email,
+      })
+      .sort({
+        createdAt: -1,
+      })
+      .toArray();
 
     res.send({
       success: true,
@@ -89,12 +121,13 @@ const getTaskById = async (req, res) => {
 
 const updateTask = async (req, res) => {
   try {
-    const id = req.params.id;
     const updatedData = req.body;
+
+    updatedData.updatedAt = new Date();
 
     const result = await tasksCollection.updateOne(
       {
-        _id: new ObjectId(id),
+        _id: new ObjectId(req.params.id),
       },
       {
         $set: updatedData,
@@ -117,6 +150,19 @@ const deleteTask = async (req, res) => {
   try {
     const id = req.params.id;
 
+    const acceptedProposal = await proposalsCollection.findOne({
+      task_id: id,
+      status: "accepted",
+    });
+
+    if (acceptedProposal) {
+      return res.status(400).send({
+        success: false,
+        message:
+          "You cannot delete this task because a proposal has already been accepted.",
+      });
+    }
+
     const result = await tasksCollection.deleteOne({
       _id: new ObjectId(id),
     });
@@ -136,8 +182,12 @@ const deleteTask = async (req, res) => {
 const getLatestTasks = async (req, res) => {
   try {
     const result = await tasksCollection
-      .find({ status: "open" })
-      .sort({ createdAt: -1 })
+      .find({
+        status: "open",
+      })
+      .sort({
+        createdAt: -1,
+      })
       .limit(6)
       .toArray();
 
@@ -155,43 +205,20 @@ const getLatestTasks = async (req, res) => {
 
 const submitDeliverable = async (req, res) => {
   try {
-    const id = req.params.id;
     const { deliverable_url } = req.body;
 
     const result = await tasksCollection.updateOne(
       {
-        _id: new ObjectId(id),
+        _id: new ObjectId(req.params.id),
       },
       {
         $set: {
           deliverable_url,
           status: "completed",
+          updatedAt: new Date(),
         },
       },
     );
-
-    res.send({
-      success: true,
-      result,
-    });
-  } catch (error) {
-    res.status(500).send({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-const getClientTasks = async (req, res) => {
-  try {
-    const email = req.params.email;
-
-    const result = await tasksCollection
-      .find({
-        client_email: email,
-      })
-      .sort({ createdAt: -1 })
-      .toArray();
 
     res.send({
       success: true,
@@ -209,9 +236,9 @@ module.exports = {
   createTask,
   getAllTasks,
   getTaskById,
+  getClientTasks,
   updateTask,
   deleteTask,
   getLatestTasks,
   submitDeliverable,
-  getClientTasks,
 };

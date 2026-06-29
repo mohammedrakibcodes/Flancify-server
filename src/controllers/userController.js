@@ -17,7 +17,22 @@ const createUser = async (req, res) => {
     }
 
     userData.createdAt = new Date();
+
     userData.isBlocked = false;
+
+    userData.image = userData.image || "";
+
+    userData.skills = userData.skills || [];
+
+    userData.bio = userData.bio || "";
+
+    userData.hourlyRate = userData.hourlyRate || 0;
+
+    userData.averageRating = 0;
+
+    userData.totalReviews = 0;
+
+    userData.totalCompletedProjects = 0;
 
     const result = await usersCollection.insertOne(userData);
 
@@ -150,6 +165,54 @@ const getTopFreelancers = async (req, res) => {
   }
 };
 
+const getAllFreelancers = async (req, res) => {
+  try {
+    const { search = "", skill = "all", page = 1, limit = 9 } = req.query;
+
+    const query = {
+      role: "freelancer",
+    };
+
+    if (search) {
+      query.name = {
+        $regex: search,
+        $options: "i",
+      };
+    }
+
+    if (skill !== "all") {
+      query.skills = skill;
+    }
+
+    const currentPage = parseInt(page);
+    const itemsPerPage = parseInt(limit);
+
+    const totalFreelancers = await usersCollection.countDocuments(query);
+
+    const result = await usersCollection
+      .find(query)
+      .skip((currentPage - 1) * itemsPerPage)
+      .limit(itemsPerPage)
+      .sort({
+        createdAt: -1,
+      })
+      .toArray();
+
+    res.send({
+      success: true,
+      totalFreelancers,
+      totalPages: Math.ceil(totalFreelancers / itemsPerPage),
+      currentPage,
+      result,
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createUser,
   getAllUsers,
@@ -158,4 +221,5 @@ module.exports = {
   getUserByQueryEmail,
   updateUser,
   getTopFreelancers,
+  getAllFreelancers,
 };

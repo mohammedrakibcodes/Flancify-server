@@ -17,8 +17,14 @@ const adminRoutes = require("./src/routes/adminRoutes");
 const authRoutes = require("./src/routes/authRoutes");
 const stripeRoutes = require("./src/routes/stripeRoutes");
 const earningRoutes = require("./src/routes/earningRoutes");
+const dashboardRoutes = require("./src/routes/dashboardRoutes");
 
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use(cookieParser());
 
@@ -32,6 +38,7 @@ app.use("/admin", adminRoutes);
 app.use("/auth", authRoutes);
 app.use("/stripe", stripeRoutes);
 app.use("/earnings", earningRoutes);
+app.use("/dashboard", dashboardRoutes);
 
 app.get("/", (req, res) => {
   res.send("Flancify Server Running");

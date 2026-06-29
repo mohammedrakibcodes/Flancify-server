@@ -1,6 +1,8 @@
 const jwt = require("jsonwebtoken");
 
 const createToken = async (req, res) => {
+  console.log("JWT API HIT");
+  console.log(req.body);
   try {
     const user = req.body;
 
@@ -18,8 +20,9 @@ const createToken = async (req, res) => {
     res
       .cookie("token", token, {
         httpOnly: true,
-        secure: false,
-        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       })
       .send({
         success: true,
@@ -34,10 +37,16 @@ const createToken = async (req, res) => {
 };
 
 const logout = async (req, res) => {
-  res.clearCookie("token").send({
-    success: true,
-    message: "Logged out",
-  });
+  res
+    .clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    })
+    .send({
+      success: true,
+      message: "Logged out",
+    });
 };
 
 module.exports = {

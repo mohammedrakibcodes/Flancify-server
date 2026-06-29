@@ -1,5 +1,6 @@
 const { ObjectId } = require("mongodb");
-const { proposalsCollection } = require("../db/collections");
+
+const { proposalsCollection, tasksCollection } = require("../db/collections");
 
 const createProposal = async (req, res) => {
   try {
@@ -19,6 +20,17 @@ const createProposal = async (req, res) => {
 
     proposalData.status = "pending";
     proposalData.submitted_at = new Date();
+
+    await tasksCollection.updateOne(
+      {
+        _id: new ObjectId(proposalData.task_id),
+      },
+      {
+        $inc: {
+          total_proposals: 1,
+        },
+      },
+    );
 
     const result = await proposalsCollection.insertOne(proposalData);
 
@@ -50,13 +62,66 @@ const getAllProposals = async (req, res) => {
   }
 };
 
+const getTaskProposals = async (req, res) => {
+  try {
+    const taskId = req.params.taskId;
+
+    const result = await proposalsCollection
+      .find({
+        task_id: taskId,
+      })
+      .sort({
+        submitted_at: -1,
+      })
+      .toArray();
+
+    res.send({
+      success: true,
+      result,
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const getFreelancerProposals = async (req, res) => {
+  try {
+    const email = req.params.email;
+
+    const result = await proposalsCollection
+      .find({
+        freelancer_email: email,
+      })
+      .sort({
+        submitted_at: -1,
+      })
+      .toArray();
+
+    res.send({
+      success: true,
+      result,
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 const updateProposal = async (req, res) => {
   try {
     const id = req.params.id;
+
     const updatedData = req.body;
 
     const result = await proposalsCollection.updateOne(
-      { _id: new ObjectId(id) },
+      {
+        _id: new ObjectId(id),
+      },
       {
         $set: updatedData,
       },
@@ -90,7 +155,9 @@ const acceptProposal = async (req, res) => {
     }
 
     await proposalsCollection.updateOne(
-      { _id: new ObjectId(id) },
+      {
+        _id: new ObjectId(id),
+      },
       {
         $set: {
           status: "accepted",
@@ -101,7 +168,9 @@ const acceptProposal = async (req, res) => {
     await proposalsCollection.updateMany(
       {
         task_id: proposal.task_id,
-        _id: { $ne: new ObjectId(id) },
+        _id: {
+          $ne: new ObjectId(id),
+        },
       },
       {
         $set: {
@@ -110,32 +179,22 @@ const acceptProposal = async (req, res) => {
       },
     );
 
-    res.send({
-      success: true,
-      message: "Proposal accepted",
-    });
-  } catch (error) {
-    res.status(500).send({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-const getFreelancerProposals = async (req, res) => {
-  try {
-    const email = req.params.email;
-
-    const result = await proposalsCollection
-      .find({
-        freelancer_email: email,
-      })
-      .sort({ submitted_at: -1 })
-      .toArray();
+    await tasksCollection.updateOne(
+      {
+        _id: new ObjectId(proposal.task_id),
+      },
+      {
+        $set: {
+          status: "in-progress",
+          selected_freelancer: proposal.freelancer_email,
+          updatedAt: new Date(),
+        },
+      },
+    );
 
     res.send({
       success: true,
-      result,
+      message: "Proposal accepted successfully.",
     });
   } catch (error) {
     res.status(500).send({
@@ -148,7 +207,8 @@ const getFreelancerProposals = async (req, res) => {
 module.exports = {
   createProposal,
   getAllProposals,
+  getTaskProposals,
+  getFreelancerProposals,
   updateProposal,
   acceptProposal,
-  getFreelancerProposals,
 };

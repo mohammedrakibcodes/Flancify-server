@@ -15,6 +15,7 @@ const verifyToken = require("../middleware/verifyToken");
 const verifyRole = require("../middleware/verifyRole");
 const verifyTaskOwner = require("../middleware/verifyTaskOwner");
 const checkBlockedUser = require("../middleware/checkBlockedUser");
+const verifyEmailOwner = require("../middleware/verifyEmailOwner");
 
 const router = express.Router();
 
@@ -30,7 +31,7 @@ router.get("/", getAllTasks);
 
 router.get("/latest", getLatestTasks);
 
-router.get("/client/:email", verifyToken, getClientTasks);
+router.get("/client/:email", verifyToken, verifyEmailOwner, getClientTasks);
 
 router.get("/:id", getTaskById);
 

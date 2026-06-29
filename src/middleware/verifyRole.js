@@ -1,6 +1,13 @@
 const verifyRole = (...roles) => {
   return (req, res, next) => {
-    const userRole = req.user?.role;
+    if (!req.user) {
+      return res.status(401).send({
+        success: false,
+        message: "Unauthorized Access",
+      });
+    }
+
+    const userRole = req.user.role;
 
     if (!roles.includes(userRole)) {
       return res.status(403).send({

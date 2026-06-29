@@ -121,8 +121,43 @@ const getAdminStats = async (req, res) => {
   }
 };
 
+const getHomeStats = async (req, res) => {
+  try {
+    const totalUsers = await usersCollection.countDocuments();
+
+    const totalTasks = await tasksCollection.countDocuments();
+
+    const payments = await paymentsCollection.find().toArray();
+
+    const totalPayout = payments.reduce(
+      (sum, payment) => sum + Number(payment.amount),
+      0,
+    );
+
+    const completedProjects = await tasksCollection.countDocuments({
+      status: "completed",
+    });
+
+    res.send({
+      success: true,
+      result: {
+        totalUsers,
+        totalTasks,
+        totalPayout,
+        completedProjects,
+      },
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getClientStats,
   getFreelancerStats,
   getAdminStats,
+  getHomeStats,
 };
